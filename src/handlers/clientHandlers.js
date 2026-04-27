@@ -1,7 +1,7 @@
 import { InlineKeyboard } from 'grammy';
 import { ClientModel } from '../db/models/Client.js';
 import { AppointmentModel } from '../db/models/Appointment.js';
-import { mainReplyKeyboard } from './menuHandlers.js';
+import { getMainKeyboard } from './menuHandlers.js';
 
 const CLIENTS_PER_PAGE = 7;
 
@@ -261,7 +261,7 @@ export async function handleNewClientPhoneInput(ctx) {
   ctx.session.step = 'CLIENT_CARD_OPEN';
   await ctx.saveSession();
 
-  await ctx.reply('📞 Телефон сохранён!', { reply_markup: mainReplyKeyboard });
+  await ctx.reply('📞 Телефон сохранён!', { reply_markup: getMainKeyboard(ctx) });
   await showClientCard(ctx, ctx.session.activeClientId);
 }
 
