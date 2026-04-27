@@ -4,7 +4,10 @@ import { connectToDatabase } from '../db/connection.js';
 import { telegramToken, webhookUrl, serverPort } from '../config/env.js';
 import { rateLimiterMiddleware } from './middleware/rateLimiter.js';
 import { sessionMiddleware } from './middleware/sessionMiddleware.js';
-import { mainReplyKeyboard, sendMainMenuMessage } from '../handlers/menuHandlers.js';
+import { getMainKeyboard, sendMainMenuMessage } from '../handlers/menuHandlers.js';
+import { SessionModel } from '../db/models/Session.js';
+import { InlineKeyboard } from 'grammy';
+import { creatorId } from '../config/env.js';
 import {
   handleJournalMenuButton,
   handleJournalDateCallback,
@@ -72,6 +75,32 @@ bot.hears('🛒 СПИСОК', async (ctx) => {
   ctx.session.step = 'IDLE';
   await ctx.saveSession();
   await showShoppingList(ctx);
+});
+
+bot.hears('👤 АДМИН', async (ctx) => {
+  if (ctx.from?.id !== creatorId) return;
+  
+  const adminKeyboard = new InlineKeyboard()
+    .text('📊 Количество активных пользователей', 'admin_user_count');
+    
+  await ctx.reply('🎛 *Панель администратора*', {
+    parse_mode: 'Markdown',
+    reply_markup: adminKeyboard
+  });
+});
+
+bot.callbackQuery('admin_user_count', async (ctx) => {
+  if (ctx.from?.id !== creatorId) {
+    await ctx.answerCallbackQuery('У вас нет доступа');
+    return;
+  }
+  
+  const userCount = await SessionModel.countDocuments();
+  await ctx.answerCallbackQuery();
+  await ctx.editMessageText(`📊 *Всего пользователей в базе:* ${userCount}`, {
+    parse_mode: 'Markdown',
+    reply_markup: new InlineKeyboard().text('🔄 Обновить', 'admin_user_count')
+  });
 });
 
 bot.callbackQuery(/^journal_date:/, handleJournalDateCallback);
@@ -170,7 +199,7 @@ bot.on('message:text', async (ctx) => {
     const lowerText = messageText.toLowerCase().trim();
 
     if (lowerText.length < MINIMUM_TEXT_LENGTH_FOR_NLP || GARBAGE_WORDS.includes(lowerText)) {
-      await ctx.reply('👇 Используй кнопки меню ниже или пришли голосовое сообщение.', { reply_markup: mainReplyKeyboard });
+      await ctx.reply('👇 Используй кнопки меню ниже или пришли голосовое сообщение.', { reply_markup: getMainKeyboard(ctx) });
       return;
     }
 
@@ -185,7 +214,7 @@ bot.on('message:text', async (ctx) => {
 
   await ctx.reply(
     '👇 Используй кнопки меню ниже или пришли голосовое сообщение.',
-    { reply_markup: mainReplyKeyboard }
+    { reply_markup: getMainKeyboard(ctx) }
   );
 });
 

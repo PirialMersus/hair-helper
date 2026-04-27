@@ -29,3 +29,4 @@ export const geminiApiKey = process.env.GEMINI_API_KEY;
 export const mongoUri = process.env.MONGO_URI;
 export const webhookUrl = process.env.WEBHOOK_URL || '';
 export const serverPort = Number(process.env.PORT) || 3000;
+export const creatorId = Number(process.env.CREATOR_ID);
