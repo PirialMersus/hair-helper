@@ -65,6 +65,22 @@ export function startCronJobs(bot) {
       console.error('Ошибка в cronService:', error);
     }
   });
+
+  // Пинг для мониторинга активности (Health Check) каждые 5 минут
+  cron.schedule('*/5 * * * *', async () => {
+    try {
+      const healthCheckUrl = 'https://hc-ping.com/3a181b98-802b-4172-a946-aeccd5a75a04';
+      const response = await fetch(healthCheckUrl);
+      
+      if (response.ok) {
+        console.log('Health check пинг успешно отправлен');
+      } else {
+        console.error(`Ошибка при отправке health check пинга: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Не удалось отправить health check пинг:', error.message);
+    }
+  });
 }
 
 function getAppointmentWord(count) {
