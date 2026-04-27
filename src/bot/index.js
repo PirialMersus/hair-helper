@@ -197,27 +197,28 @@ async function startBot() {
   await connectToDatabase();
   startCronJobs(bot);
 
+  const expressApplication = express();
+  expressApplication.use(express.json());
+
+  expressApplication.get('/health', (_request, response) => {
+    response.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
   if (process.env.NODE_ENV === 'production') {
     const webhookEndpoint = `${webhookUrl}/webhook`;
     await bot.api.setWebhook(webhookEndpoint);
     console.log(`Webhook установлен: ${webhookEndpoint}`);
 
-    const expressApplication = express();
-    expressApplication.use(express.json());
     expressApplication.use('/webhook', webhookCallback(bot, 'express'));
-
-    expressApplication.get('/health', (_request, response) => {
-      response.json({ status: 'ok', timestamp: new Date().toISOString() });
-    });
-
-    expressApplication.listen(serverPort, () => {
-      console.log(`Сервер запущен на порту ${serverPort}`);
-    });
   } else {
     await bot.api.deleteWebhook();
     bot.start();
     console.log('Бот запущен в режиме Long Polling (локально)');
   }
+
+  expressApplication.listen(serverPort, () => {
+    console.log(`Сервер запущен на порту ${serverPort}`);
+  });
 }
 
 startBot();
