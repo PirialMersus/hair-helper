@@ -6,7 +6,7 @@ import { rateLimiterMiddleware } from './middleware/rateLimiter.js';
 import { sessionMiddleware } from './middleware/sessionMiddleware.js';
 import { getMainKeyboard, sendMainMenuMessage } from '../handlers/menuHandlers.js';
 import { SessionModel } from '../db/models/Session.js';
-import { InlineKeyboard } from 'grammy';
+import { InlineKeyboard, InputFile } from 'grammy';
 import { creatorId } from '../config/env.js';
 import {
   handleJournalMenuButton,
@@ -53,10 +53,18 @@ bot.use(rateLimiterMiddleware);
 bot.use(sessionMiddleware);
 
 bot.command('start', async (ctx) => {
-  await sendMainMenuMessage(
-    ctx,
-    `👋 Привет! Я твой персональный ассистент парикмахера.\n\nВыбери раздел в меню ниже.`
-  );
+  const welcomeText = `✨ *Привет! Я твой умный ассистент парикмахера!*\n\n` +
+    `Я здесь, чтобы сделать твою работу проще и удобнее. Вот что я умею:\n\n` +
+    `🎙 *Понимаю голосовые:* Просто скажи «Запиши Катю на завтра на 15:00 на стрижку», и я добавлю её в журнал.\n` +
+    `📸 *Анализирую фото:* Отправь мне фото до/после, и я прикреплю их к карточке клиента.\n` +
+    `📝 *Веду учет:* Я помогу вести базу клиентов, считать доходы и планировать закупки.\n\n` +
+    `Выбирай нужный раздел в меню ниже и давай начнем работу! 👇`;
+
+  await ctx.replyWithPhoto(new InputFile('src/assets/welcome.png'), {
+    caption: welcomeText,
+    parse_mode: 'Markdown',
+    reply_markup: getMainKeyboard(ctx),
+  });
 });
 
 bot.hears('🗓 ЖУРНАЛ', handleJournalMenuButton);
