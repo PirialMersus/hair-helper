@@ -10,7 +10,7 @@ export async function showShoppingList(ctx) {
   let listText = '🛒 *Список покупок*\n\n';
 
   if (shoppingItems.length === 0) {
-    listText += '_Список пуст. Напиши что нужно купить._';
+    listText += '_Список пуст. Напиши или продиктуй, что нужно купить._';
   } else {
     shoppingItems.forEach((item, index) => {
       listText += `${index + 1}. ${item.text}\n`;

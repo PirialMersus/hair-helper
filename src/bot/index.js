@@ -29,6 +29,8 @@ import {
   handleClientSearchCallback,
   handleClientSearchInput,
   handleClientAutoCreateCallback,
+  handleClientDeleteCallback,
+  handleClientConfirmDeleteCallback,
 } from '../handlers/clientHandlers.js';
 import {
   showCashRegister,
@@ -136,6 +138,8 @@ bot.callbackQuery('client_skip_phone', handleSkipPhoneCallback);
 bot.callbackQuery(/^client_page:/, handleClientPageCallback);
 bot.callbackQuery('client_search', handleClientSearchCallback);
 bot.callbackQuery(/^client_auto_create:/, handleClientAutoCreateCallback);
+bot.callbackQuery(/^client_delete:/, handleClientDeleteCallback);
+bot.callbackQuery(/^client_confirm_delete:/, handleClientConfirmDeleteCallback);
 bot.callbackQuery(/^client_edit:/, async (ctx) => {
   await ctx.answerCallbackQuery('🚧 Функция редактирования в разработке');
 });
@@ -150,7 +154,7 @@ bot.callbackQuery('need_add', async (ctx) => {
   ctx.session.step = 'AWAIT_NEED';
   await ctx.saveSession();
   await ctx.answerCallbackQuery();
-  await ctx.reply('✏️ Напиши, что нужно купить:');
+  await ctx.reply('✏️ Напиши или продиктуй, что нужно купить:');
 });
 
 bot.callbackQuery(/^photo_classify:/, handlePhotoClassifyCallback);

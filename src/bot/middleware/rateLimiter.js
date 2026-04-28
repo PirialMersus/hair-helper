@@ -1,5 +1,5 @@
 const lastMessageTimestampByUserId = new Map();
-const MINIMUM_INTERVAL_BETWEEN_MESSAGES_MS = 1000;
+const MINIMUM_INTERVAL_BETWEEN_MESSAGES_MS = 500;
 const RATE_LIMITER_CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 const RATE_LIMITER_ENTRY_TTL_MS = 5 * 60 * 1000;
 
@@ -20,6 +20,9 @@ export function rateLimiterMiddleware(ctx, next) {
   const currentTimestamp = Date.now();
 
   if (currentTimestamp - lastTimestamp < MINIMUM_INTERVAL_BETWEEN_MESSAGES_MS) {
+    if (ctx.callbackQuery) {
+      return ctx.answerCallbackQuery({ text: '⏳ Слишком быстро!', show_alert: false });
+    }
     return ctx.reply('⏳ Не так быстро! Подожди секунду.');
   }
 

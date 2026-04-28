@@ -97,7 +97,7 @@ export async function handleAddIncomeCallback(ctx) {
 
   await ctx.answerCallbackQuery();
   await ctx.reply(
-    '💰 Опиши доход. Например: _«получил 2000 со стрижки»_ или _«оплата 3500»_',
+    '💰 Напиши или продиктуй сумму дохода. Например: _«получил 2000 со стрижки»_ или _«оплата 3500»_',
     { parse_mode: 'Markdown' }
   );
 }
@@ -108,7 +108,7 @@ export async function handleAddExpenseCallback(ctx) {
 
   await ctx.answerCallbackQuery();
   await ctx.reply(
-    '💸 Опиши расход. Например: _«краска 800 рублей»_ или _«расход 500 на фольгу»_',
+    '💸 Напиши или продиктуй сумму расхода. Например: _«краска 800 рублей»_ или _«расход 500 на фольгу»_',
     { parse_mode: 'Markdown' }
   );
 }

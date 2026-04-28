@@ -60,7 +60,7 @@ export async function handleClientPageCallback(ctx) {
 export async function handleClientSearchCallback(ctx) {
   ctx.session.step = 'AWAIT_CLIENT_SEARCH';
   await ctx.saveSession();
-  await ctx.editMessageText('🔍 Введи имя или часть имени клиента для поиска:', {
+  await ctx.editMessageText('🔍 Напиши или продиктуй имя клиента для поиска:', {
     reply_markup: new InlineKeyboard().text('← Отмена', 'client_back_to_list'),
   });
   await ctx.answerCallbackQuery();
@@ -105,6 +105,8 @@ export async function showClientCard(ctx, clientId) {
     .text('📸 История фото', `client_photos:${clientId}`)
     .text('✏️ Редактировать', `client_edit:${clientId}`)
     .row()
+    .text('🗑 Удалить клиента', `client_delete:${clientId}`)
+    .row()
     .text('← Назад', 'client_back_to_list');
 
   if (ctx.callbackQuery) {
@@ -131,7 +133,7 @@ export async function handleClientCreateCallback(ctx) {
   ctx.session.activeClientId = null;
   await ctx.saveSession();
 
-  await ctx.editMessageText('✏️ Введи имя нового клиента:', {
+  await ctx.editMessageText('✏️ Напиши или продиктуй имя нового клиента:', {
     reply_markup: new InlineKeyboard().text('← Отмена', 'client_back_to_list'),
   });
   await ctx.answerCallbackQuery();
@@ -272,4 +274,44 @@ export async function handleSkipPhoneCallback(ctx) {
   await ctx.answerCallbackQuery();
   await ctx.deleteMessage();
   await showClientCard(ctx, ctx.session.activeClientId);
+}
+
+export async function handleClientDeleteCallback(ctx) {
+  const clientId = ctx.callbackQuery.data.replace('client_delete:', '');
+  const masterId = String(ctx.from.id);
+
+  const client = await ClientModel.findOne({ _id: clientId, masterId });
+  if (!client) {
+    await ctx.answerCallbackQuery('Клиент не найден');
+    return;
+  }
+
+  const confirmKeyboard = new InlineKeyboard()
+    .text('✅ Да, удалить всё', `client_confirm_delete:${clientId}`)
+    .text('↩️ Отмена', `client_open:${clientId}`);
+
+  await ctx.editMessageText(
+    `⚠️ *ВНИМАНИЕ!* Удаление клиента «${client.name}» необратимо.\n\nБудет удалена вся история посещений и записи в журнале. Вы уверены?`,
+    { parse_mode: 'Markdown', reply_markup: confirmKeyboard }
+  );
+  await ctx.answerCallbackQuery();
+}
+
+export async function handleClientConfirmDeleteCallback(ctx) {
+  const clientId = ctx.callbackQuery.data.replace('client_confirm_delete:', '');
+  const masterId = String(ctx.from.id);
+
+  const deletedClient = await ClientModel.findOneAndDelete({ _id: clientId, masterId });
+
+  if (deletedClient) {
+    // Также удаляем все записи этого клиента в журнале
+    await AppointmentModel.deleteMany({ clientId: deletedClient._id, masterId });
+    await ctx.answerCallbackQuery(`Клиент ${deletedClient.name} удален`);
+  } else {
+    await ctx.answerCallbackQuery('Клиент не найден');
+  }
+
+  ctx.session.activeClientId = null;
+  await ctx.saveSession();
+  await showClientList(ctx);
 }

@@ -14,8 +14,8 @@ function buildEndOfToday() {
 }
 
 export function startCronJobs(bot) {
-  // Запускаем каждый день в 08:30 утра по локальному времени сервера
-  cron.schedule('30 8 * * *', async () => {
+  // Запускаем каждый день в 08:00 утра по времени Киева
+  cron.schedule('0 8 * * *', async () => {
     try {
       console.log('Запуск утренней рассылки (Daily Briefing)...');
       
@@ -64,23 +64,27 @@ export function startCronJobs(bot) {
     } catch (error) {
       console.error('Ошибка в cronService:', error);
     }
+  }, {
+    timezone: 'Europe/Kyiv'
   });
 
-  // Пинг для мониторинга активности (Health Check) каждые 5 минут
-  cron.schedule('*/5 * * * *', async () => {
-    try {
-      const healthCheckUrl = 'https://hc-ping.com/3a181b98-802b-4172-a946-aeccd5a75a04';
-      const response = await fetch(healthCheckUrl);
-      
-      if (response.ok) {
-        console.log('Health check пинг успешно отправлен');
-      } else {
-        console.error(`Ошибка при отправке health check пинга: ${response.status}`);
+  // Пинг для мониторинга активности (Health Check) только в продакшене каждые 5 минут
+  if (process.env.NODE_ENV === 'production') {
+    cron.schedule('*/5 * * * *', async () => {
+      try {
+        const healthCheckUrl = 'https://hc-ping.com/3a181b98-802b-4172-a946-aeccd5a75a04';
+        const response = await fetch(healthCheckUrl);
+        
+        if (response.ok) {
+          console.log('Health check пинг успешно отправлен');
+        } else {
+          console.error(`Ошибка при отправке health check пинга: ${response.status}`);
+        }
+      } catch (error) {
+        console.error('Не удалось отправить health check пинг:', error.message);
       }
-    } catch (error) {
-      console.error('Не удалось отправить health check пинг:', error.message);
-    }
-  });
+    });
+  }
 }
 
 function getAppointmentWord(count) {
