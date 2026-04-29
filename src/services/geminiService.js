@@ -4,7 +4,7 @@ import { geminiApiKey } from '../config/env.js';
 const googleGenerativeAIClient = new GoogleGenerativeAI(geminiApiKey);
 
 const geminiFlashModel = googleGenerativeAIClient.getGenerativeModel({
-  model: 'gemini-2.5-flash',
+  model: 'gemini-3-flash-preview',
 });
 
 const systemPromptForHairMasterAssistant = `Ты — профессиональный ассистент парикмахера. Твоя задача — извлекать структурированные данные из текстового или голосового сообщения мастера.
