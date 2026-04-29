@@ -123,9 +123,9 @@ async function saveAppointment(ctx, masterId, data) {
   const appointment = await AppointmentModel.create({
     masterId,
     clientId: existingClient?._id ?? null,
-    clientName: data.name,
+    clientName: data.name || 'Клиент',
     dateTime: parsedDateTime,
-    serviceType: data.service || '',
+    serviceType: data.service || data.category || '',
   });
 
   const formattedDateTime = parsedDateTime.toLocaleString('ru-RU', {
@@ -169,20 +169,23 @@ async function cancelAppointment(ctx, masterId, data) {
 }
 
 async function saveFinance(ctx, masterId, data) {
+  const amount = Number(data.amount) || 0;
+  const type = data.type === 'expense' ? 'expense' : 'income';
+
   await FinanceModel.create({
     masterId,
-    amount: Number(data.amount),
-    type: data.type,
-    category: data.category || '',
+    amount,
+    type,
+    category: data.category || data.item || '',
     date: new Date(),
   });
 
-  const typeLabel = data.type === 'income' ? '✅ Доход' : '❌ Расход';
-  await ctx.reply(`${typeLabel} *${Number(data.amount).toLocaleString('ru-RU')} ₽* сохранен.`, { parse_mode: 'Markdown' });
+  const typeLabel = type === 'income' ? '✅ Доход' : '❌ Расход';
+  await ctx.reply(`${typeLabel} *${amount.toLocaleString('ru-RU')} ₽* сохранен.`, { parse_mode: 'Markdown' });
 }
 
 async function saveNeed(ctx, masterId, data) {
-  const itemText = data?.item || data?.text;
+  const itemText = data?.item || data?.text || 'Что-то нужное';
   await NeedModel.create({ masterId, text: itemText });
   await ctx.reply(`🛒 Добавлено в список: *${itemText}*`, { parse_mode: 'Markdown' });
 }
