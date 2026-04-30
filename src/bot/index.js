@@ -114,7 +114,7 @@ bot.callbackQuery('admin_user_count', async (ctx) => {
 });
 
 bot.callbackQuery(/^journal_date:/, handleJournalDateCallback);
-bot.callbackQuery('journal_calendar', handleJournalCalendarCallback);
+bot.callbackQuery(/^journal_calendar/, handleJournalCalendarCallback);
 bot.callbackQuery('journal_calendar_close', handleJournalCalendarCloseCallback);
 bot.callbackQuery(/^journal_cancel:/, handleAppointmentDeleteCallback);
 bot.callbackQuery(/^journal_confirm_cancel:/, handleAppointmentConfirmDeleteCallback);

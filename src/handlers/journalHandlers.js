@@ -51,20 +51,28 @@ export function buildCalendarKeyboard(year, month) {
   const date = new Date(year, month, 1);
   const monthName = date.toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
 
-  keyboard.text(monthName, 'ignore').row();
+  const prevMonthDate = new Date(year, month - 1, 1);
+  const nextMonthDate = new Date(year, month + 1, 1);
+
+  const prevPayload = `journal_calendar:${prevMonthDate.getFullYear()}:${prevMonthDate.getMonth()}`;
+  const nextPayload = `journal_calendar:${nextMonthDate.getFullYear()}:${nextMonthDate.getMonth()}`;
+
+  keyboard
+    .text('⬅️', prevPayload)
+    .text(monthName, 'ignore')
+    .text('➡️', nextPayload)
+    .row();
 
   const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
   weekDays.forEach((day) => keyboard.text(day, 'ignore'));
   keyboard.row();
 
-  // Пустые ячейки до начала месяца
   let firstDay = date.getDay();
-  if (firstDay === 0) firstDay = 7; // Вс -> 7
+  if (firstDay === 0) firstDay = 7; 
   for (let i = 1; i < firstDay; i++) {
     keyboard.text(' ', 'ignore');
   }
 
-  // Дни месяца
   while (date.getMonth() === month) {
     const day = date.getDate();
     const iso = date.toISOString();
@@ -153,8 +161,20 @@ export async function handleJournalDateCallback(ctx) {
 }
 
 export async function handleJournalCalendarCallback(ctx) {
-  const now = new Date();
-  const keyboard = buildCalendarKeyboard(now.getFullYear(), now.getMonth());
+  const data = ctx.callbackQuery.data;
+  let year, month;
+
+  if (data === 'journal_calendar') {
+    const now = new Date();
+    year = now.getFullYear();
+    month = now.getMonth();
+  } else {
+    const parts = data.split(':');
+    year = parseInt(parts[1]);
+    month = parseInt(parts[2]);
+  }
+
+  const keyboard = buildCalendarKeyboard(year, month);
   await ctx.editMessageText('📅 Выбери дату из календаря:', {
     reply_markup: keyboard,
   });
